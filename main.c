@@ -1,19 +1,23 @@
 #include <assert.h>
 #include <stdio.h>
-#include <string.h>
 
-#define __JSON_IMPLE__
-#include "json.h"
+#define __SJS_IMPLE__
+#include "sjson.h"
 
-JsonStruct(Number,int(j),int(c));
+JsonStruct(User,int(j),int(c),string(name),float(gpa));
 
 int main(int argc, char const *argv[]){
     char buf[1000];
-    Number num ={.j=10};
-    json_encode(Number,num,buf);
-    assert(strcmp(buf,"{\"j\":10,\"c\":0}")==0);
+    User user ={
+                .j=10,
+                .c=20,
+                .name="user is the one",
+                .gpa=1.2,
+            };
+    json_encode(User,user,buf);
     printf("%s\n",buf );
-    num = json_decode(Number,buf);
-    printf("%d\n",num.c);
+    char *json_string = "{\"j\":10,\"c\":20,\"name\":\"user is the one\",\"gpa\":\"1.200000\"}";
+    user = json_decode(User,json_string);
+    printf("%f\n",user.gpa);    
     return 0;
 }

@@ -41,8 +41,8 @@ JsonStruct(User_b,string(name),int(id),int(age));
 # Examples
 
 ```c
-#define __JSON_IMPLE__
-#include "json.h"
+#define __SJS_IMPLE__
+#include "sjson.h"
 
 
 JsonStruct(User,int(id),string(name),int(age),string(address))
@@ -62,6 +62,12 @@ int main(){
     // but presence of additional keys are ignored
     user = json_decode(User,json_string);
     printf("%d",user.id);//123
+    // SJS allocates memeory for all string type
+    // and when you are done with them you can do
+    // any of the following
+    free_all_malloc(); // free all alloacter memory
+    // free_recent_malloc(); // frees single last allocated memory
+    // free_n_recent_malloc(size_t n); // free n-number of recently allocated memory
     return 0;
 }
 
