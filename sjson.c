@@ -1,6 +1,13 @@
+#include "sjson.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+
+#define TO_PUS(x) x=='{' || x=='[' || x=='"'
+#define TO_POP(x,y) x=='{' && y=='}' || x==y && x=='"' || x=='['&& y==']'
+
 
 void clean_null_terminators(char *buffer) {
 	char stack = 0;
@@ -23,7 +30,29 @@ void clean_null_terminators(char *buffer) {
 	buffer[p2-1] = 0;
 }
 
-void json_get_var(const char *json_string,const char *key,char *value_buffer){
+const char* valid_by_empty_stack(const  char *cur_pointer,const char cur_symbol){
+    char stack_symbol[1024]={0};
+    int sp = 0,ptr=0;
+
+    stack_symbol[sp++] = cur_symbol;
+    while(sp > 0 && *(cur_pointer+ptr)){
+        char c =  *(cur_pointer+ptr);
+        if(TO_PUS(c)){
+            stack_symbol[sp++] = c;
+        }else if(TO_POP(stack_symbol[sp-1],c)){
+            stack_symbol[sp-1] = 0;
+            sp-=2;
+        }
+        ptr++;
+    }
+    if(sp<1){
+        return (cur_pointer+ptr);
+    }else{
+        return NULL;
+    }
+}
+
+const char * json_get_var(const char *json_string,const char *key,size_t *length){
 
     const char *key_start=json_string+1;
     // search for key like string, until we reach end of json_string
@@ -31,16 +60,14 @@ void json_get_var(const char *json_string,const char *key,char *value_buffer){
     while(!(*(key_start-1)=='"' && *(key_start+strlen(key))=='"')){
         key_start = strstr(json_string, key);
         if (key_start == NULL) {
-            value_buffer[0] = '\0';
-            return;
+            return NULL;
         }
     }
 
     //  search for `:`
     const char *colon_pos = strchr(key_start, ':');
     if (colon_pos == NULL) {
-        value_buffer[0] = '\0';
-        return;
+        return NULL;
     }
     // consume `:`
     colon_pos++;
@@ -57,60 +84,278 @@ void json_get_var(const char *json_string,const char *key,char *value_buffer){
         quoted_value = 1;
     }
     
+    // now for array and nested json
+    char nested_symbol = 0;
+    if(*colon_pos=='[' || *colon_pos == '{'){
+        // store and consume this symbol
+        nested_symbol = *colon_pos;
+        colon_pos++;
+    }
+
     const char *value_start = colon_pos;
     const char *value_end = value_start;
     if(quoted_value){
         value_end = strchr(value_start, '"');
-    }else{
+    } else if(nested_symbol=='['|| nested_symbol == '{'){
+        value_end = valid_by_empty_stack(value_start,nested_symbol);
+    }
+    else{
        while(*value_end && *value_end!=' ' && *value_end!='\t' && *value_end!=','){
         value_end++;
        }
 
     }
     if (value_end == NULL) {
-        value_buffer[0] = '\0';
-        return;
+        return NULL;
     }
-    size_t value_length = value_end - value_start;
-    strncpy(value_buffer, value_start, value_length);
-    value_buffer[value_length] = '\0';
+
+    
+    *length = value_end - value_start; 
+    // if(value_length>1024 && is_dynamic){
+    //     void * temp = realloc(value_buffer,sizeof(char)*value_length+1);
+    //     assert(temp != NULL && "Cannot Allocate Memeory BUY MORE!!");
+    //     value_buffer = temp;
+    // }
+    // strncpy(value_buffer, value_start, value_length);
+    // value_buffer[value_length] = '\0';
+    return value_start;
 }
 
+#define MAX_INT_SIZE 100
 int json_get_var_int(const char * json_string,const char *key_string){
-    char value_buffer[1024];
-    json_get_var(json_string, key_string, value_buffer);
-    return atoi(value_buffer);
+    char value_buffer[MAX_INT_SIZE];
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    if(length < MAX_INT_SIZE){
+        strncpy(value_buffer,start_from,length);
+        return atoi(value_buffer);
+    }
+    assert(1!=1 && "Please Increase the MAX_INT_SIZE");
 }
 
 char json_get_var_char(const char * json_string,const char *key_string){
-    char value_buffer[1024];
-    json_get_var(json_string, key_string, value_buffer);
-    return value_buffer[0];
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    return *start_from;
 }
 
 
+#define MAX_LONG_SIZE 100
 long json_get_var_long(const char * json_string,const char *key_string){
-    char value_buffer[1024];
-    json_get_var(json_string, key_string, value_buffer);
-    return atol(value_buffer);
+    char value_buffer[MAX_LONG_SIZE];
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    if(length < MAX_LONG_SIZE){
+        strncpy(value_buffer,start_from,length);
+        return atol(value_buffer);
+    }
+    assert(1!=1 && "Please Increase the MAX_LONG_SIZE");
 }
 
+#define MAX_DOUBLE_SIZE 100
 double json_get_var_double(const char * json_string,const char *key_string){
-    char value_buffer[1024];
-    json_get_var(json_string, key_string, value_buffer);
-    return atof(value_buffer);
+    char value_buffer[MAX_DOUBLE_SIZE];
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    if(length < MAX_DOUBLE_SIZE){
+        strncpy(value_buffer,start_from,length);
+        return atof(value_buffer);
+    }
+    assert(1!=1 && "Please Increase the MAX_DOUBLE_SIZE");
 }
 
 char * json_get_var_string(const char * json_string,const char *key_string){
-    char *value_buffer = calloc(sizeof(char),1024);
-    json_get_var(json_string, key_string, value_buffer);
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
 
-    #ifdef __SJS_MALLOC_TRACK__
+    char *value_buffer = calloc(sizeof(char),length);
+    
         __SJS_A[__SJS_C++] = value_buffer;
-    #endif
+    
+    strncpy(value_buffer, start_from,length);   
     return value_buffer;
 }
-#ifdef __SJS_MALLOC_TRACK__
+
+
+#define IS_int(x)  x>='0' && x<='9'
+#define IS_long(x)  IS_int(x)
+#define IS_SPACE(x) x==' ' || x=='\t' || x=='\v' || x=='\f' || x=='\n'
+
+
+#define whole_number_consume(x,to_call) \
+x consume_##x(const char* string,size_t *consumed){\
+    char buffer[MAX_INT_SIZE]={0};\
+    size_t buff_ptr = 0;\
+    size_t ptr=0;\
+    while(IS_SPACE(string[ptr])){\
+        ptr++;\
+    }\
+    while(string[ptr] && IS_##x(string[ptr])){\
+        buffer[buff_ptr] = string[ptr];\
+        ptr++;\
+        buff_ptr++;\
+    }\
+    buffer[buff_ptr]=0;\
+    if(string[ptr]){\
+        *consumed  =  ptr;\
+        return to_call(buffer);\
+    }else{\
+        *consumed = -1;\
+        return -1;\
+    }\
+}\
+
+whole_number_consume(int,atoi);
+whole_number_consume(long,atol);
+
+#define IS_float(x) '0'<=x && x<='9' || x=='.'
+#define IS_double(x) IS_float(x)
+
+#define decimal_number_consume(x,to_call) \
+x consume_##x(const char* string,size_t *consumed){\
+    char buffer[MAX_INT_SIZE]={0};\
+    size_t buff_ptr = 0;\
+    size_t ptr=0;\
+    while(IS_SPACE(string[ptr])){\
+        ptr++;\
+    }\
+    while(string[ptr] && IS_##x(string[ptr])){\
+        buffer[buff_ptr] = string[ptr];\
+        ptr++;\
+        buff_ptr++;\
+    }\
+    buffer[buff_ptr]=0;\
+    if(string[ptr]){\
+        *consumed  =  ptr;\
+        return to_call(buffer);\
+    }else{\
+        *consumed = -1;\
+        return -1;\
+    }\
+}\
+
+decimal_number_consume(float,atof);
+decimal_number_consume(double,atof);
+
+
+
+#define array_parser(x) \
+x* parse_##x##_array(const char* string_ptr,size_t length){\
+    x* array  = calloc(sizeof(x),length/2);\
+    size_t a_ptr=0;\
+    size_t ptr=0;\
+    while(string_ptr[ptr] && string_ptr[ptr]!=']'){\
+        size_t shift_by=0;\
+        array[a_ptr++] = consume_##x((string_ptr+ptr),&shift_by);\
+        if(shift_by<0){\
+            return array;\
+        }\
+        ptr+=shift_by;\
+        while(string_ptr[ptr] && (IS_SPACE(string_ptr[ptr]) || string_ptr[ptr]==',')){\
+            ptr++;\
+        }\
+    }\
+        __SJS_A[__SJS_C++] = array;\
+    __SJS_recent_array_size = a_ptr;\
+    return array;\
+}\
+
+#define list array_parser(int) array_parser(float) array_parser(double) array_parser(long)
+list
+
+int * json_get_var_int_array(const char * json_string, const char* key_string){
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    return parse_int_array(start_from, length);
+}
+
+double * json_get_var_double_array(const char * json_string, const char* key_string){
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    return parse_double_array(start_from, length);
+}
+
+float * json_get_var_float_array(const char * json_string, const char* key_string){
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    return parse_float_array(start_from, length);
+}
+
+long * json_get_var_long_array(const char * json_string, const char* key_string){
+    const char *start_from;
+    size_t length = 0;
+    start_from = json_get_var(json_string, key_string, &length);
+    return parse_long_array(start_from, length);
+}
+
+
+
+
+
+char * array_to_string(void *items,size_t count,const char * fmt,uint max_char_per_item){
+    char * string = calloc(
+                           sizeof(char),
+                           /* extra 2 for `,` and ` ` */
+                           count*(max_char_per_item + 2
+                        ));
+    char *temp = string;
+    
+        __SJS_A[__SJS_C++] = string;
+    
+    string[0] = '[';
+    temp+=1;
+    for(size_t i=0;i<count;i++){
+        size_t write_count=0;
+        if(strcmp(fmt,"%d")){
+            write_count = sprintf(temp,fmt,((int *)items)[i]);
+        }else if(strcmp(fmt,"%f")){
+            write_count = sprintf(temp,fmt,((float *)items)[i]);
+        }else if(strcmp(fmt,"%lf")){
+            write_count = sprintf(temp,fmt,((double *)items)[i]);
+        }else if(strcmp(fmt,"%ld")){
+            write_count = sprintf(temp,fmt,((long *)items)[i]);
+        }
+        temp+=write_count;
+        *temp++=',';
+        *temp++=' ';
+    }
+    *(temp-2)=']';
+    *(temp-1) = 0;
+    return string;
+
+}
+
+char * int_array_to_string(int *items,size_t count){
+    // uint int_max_digits = 11;//if all 4bytes are 1,
+    return array_to_string(items,count,"%d",11);
+}
+
+char * float_array_to_string(float *items,size_t count){
+    return array_to_string(items,count,"%f",16);
+}
+
+char * double_array_to_string(double *items,size_t count){
+    return array_to_string(items,count,"%lf",32);
+}
+
+char * long_array_to_string(int *items,size_t count){
+    return array_to_string(items,count,"%ld",22);
+}
+
+
+
+// memory free related task
+// use costume arena for memeory allocatoin
+
+
 void free_recent_malloc(){
     __SJS_C--;
     free(__SJS_A[__SJS_C]);
@@ -137,7 +382,7 @@ void free_n_recent_malloc(size_t n){
 }
 
 
-#endif
+
 
 
 

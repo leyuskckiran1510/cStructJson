@@ -25,12 +25,13 @@
 // double and float are treat as double when parsing from string
 FOR_EACH(GenerateFunctionSig,int,char,double,long)
 char* json_get_var_string(const char * json_string,const char *key_string);
+int* json_get_var_int_array(const char * json_string,const char *key_string);
 void clean_null_terminators(char *buffer);
 
 
 /*
 // each define explanation
-v_       => v_    will expand given variable to `data_type variable` 
+declare_       => declare_    will expand given variable to `data_type variable` 
 fmt_     => fmt_  will prepear struct member string and it's format string
 var_     => var_  will expand to member name
 str_     => str_  will expand to member name c-string 
@@ -43,50 +44,94 @@ NOTE:- if you want to add new datatypes you can
 */
 
 // int parsing and handeling functions
-#define v_int(x) int x
+#define declare_int(x) int x
 #define fmt_int(x) "\""#x"\":%d"
 #define var_int(x) x
-#define str_var_int(x) #x
-#define jget_int(...) json_get_var_int
+#define var2_int(x) x
+#define jget_int(x) json_get_var_int(buffer,#x)
+#define parse_int(x) 
+
 // for char
-#define v_char(x) char x
+#define declare_char(x) char x
 #define fmt_char(x) "\""#x"\":\"%c\""
 #define var_char(x) x
-#define str_var_char(x) #x
-#define jget_char(...) json_get_var_char
+#define var2_char(x) x
+#define jget_char(x) json_get_var_char(buffer,#x)
+#define parse_char(x) 
+
 // for float
-#define v_float(x) float x
-#define fmt_float(x) "\""#x"\":\"%f\""
+#define declare_float(x) float x
+#define fmt_float(x) "\""#x"\":%f"
 #define var_float(x) x
-#define str_var_float(x) #x
-#define jget_float(...) json_get_var_double
+#define var2_float(x) x
+#define jget_float(x) json_get_var_double(buffer,#x)
+#define parse_float(x) 
 
 // for string
-#define v_string(x) char* x
+#define declare_string(x) char* x
 #define fmt_string(x) "\""#x"\":\"%s\""
 #define var_string(x) x
-#define str_var_string(x) #x
-#define jget_string(...) json_get_var_string
+#define var2_string(x) x
+#define jget_string(x) json_get_var_string(buffer,#x)
+#define parse_string(x) 
 
 // for long
-#define v_long(x) long x
-#define fmt_long(x) "\""#x"\":\"%ld\""
+#define declare_long(x) long x
+#define fmt_long(x) "\""#x"\":%ld"
 #define var_long(x) x
-#define str_var_long(x) #x
-#define jget_long(...) json_get_var_long
+#define var2_long(x) x
+#define jget_long(x) json_get_var_long(buffer,#x)
+#define parse_long(x) 
 
 // for double
-#define v_double(x) double x
-#define fmt_double(x) "\""#x"\":\"%ld\""
+#define declare_double(x) double x
+#define fmt_double(x) "\""#x"\":%ld"
 #define var_double(x) x
-#define str_var_double(x) #x
-#define jget_double(...) json_get_var_double
+#define var2_double(x) x
+#define jget_double(x) json_get_var_double(buffer,#x)
+#define parse_double(x) 
+
+//for array pointers;
+
+static size_t __SJS_recent_array_size =0;
+//for int pointers
+#define declare_apointerInt(x) int *x;size_t x##_count
+#define fmt_apointerInt(x) "\""#x"\":%s"
+#define var_apointerInt(x) x
+#define var2_apointerInt(x) x,struct_instance.x##_count
+#define jget_apointerInt(x)   json_get_var_int_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_apointerInt(x)  int_array_to_string
+
+#define declare_apointerFloat(x) float *x;size_t x##_count
+#define fmt_apointerFloat(x) "\""#x"\":%s"
+#define var_apointerFloat(x) x
+#define var2_apointerFloat(x) x,struct_instance.x##_count
+#define jget_apointerFloat(x)   json_get_var_float_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_apointerFloat(x)  float_array_to_string
+
+#define declare_apointerDouble(x) double *x;size_t x##_count
+#define fmt_apointerDouble(x) "\""#x"\":%s"
+#define var_apointerDouble(x) x
+#define var2_apointerDouble(x) x,struct_instance.x##_count
+#define jget_apointerDouble(x)   json_get_var_double_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_apointerDouble(x)  double_array_to_string
 
 
-#define ExpandToStructMember(x)      v_##x;
+#define declare_apointerLong(x) long *x;size_t x##_count
+#define fmt_apointerLong(x) "\""#x"\":%s"
+#define var_apointerLong(x) x
+#define var2_apointerLong(x) x,struct_instance.x##_count
+#define jget_apointerLong(x)   json_get_var_long_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_apointerLong(x)  long_array_to_string
+
+
+
+
+
+#define ExpandToStructMember(x)      declare_##x;
 #define ExpandToFormatString(x)      fmt_##x","
-#define ExpandToMemberAccess(x)      ,struct_instance.var_##x
-#define ExpandToJsonValueGet(x)      .var_##x = jget_##x(buffer,str_var_##x),
+#define ExpandToMemberAccess(x)      ,parse_##x(struct_instance.var2_##x)
+#define ExpandToJsonValueGet(x)      .var_##x = jget_##x,
  
 //__VAR_OPT__(x); will expand to x, if __VA_ARGS__ is not empty
 // so in json_encode, we set buffer = "{}", as fallback when 
@@ -124,8 +169,9 @@ static size_t __SJS_C = 0;
 void free_recent_malloc();
 void free_all_malloc();
 void free_n_recent_malloc(size_t n);
-#endif
 
 #ifdef __SJS_IMPLE__
 #include "sjson.c"
+#endif
+
 #endif
