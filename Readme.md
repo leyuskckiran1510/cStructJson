@@ -31,46 +31,59 @@ typedef struct{
 JsonStruct(User_b,string(name),int(id),int(age));
 // and Yes, you can use User struct as Like User_a can be used,
 ```
+# New Features
+- added support for int,float,long and double array
 
 # Cons/TODOs
 - dosenot supports nested struct or union
 - only supports following types for struct member, int,char,char*,float,double,long
+    int *, long *, float *, double * 
 - when doing json_decode, is the provided json string has more fields then it
   treats it like a valid json, and will only populate the sturct fields from it
 
 # Examples
 
 ```c
+#include <assert.h>
+#include <stdio.h>
+
 #define __SJS_IMPLE__
 #include "sjson.h"
 
+JsonStruct(User,int(j),int(c),string(name),float(gpa),DArrayFloat(marks));
+/*
+typedef struct{
+        int j;
+        int c;
+        char* name;
+        float gpa;
+        float * marks;
+}User;
 
-JsonStruct(User,int(id),string(name),int(age),string(address))
 
-int main(){
-    User user={
-        .id = 1,
-        .name = "The User 1",
-        .age = 19,
-    };
-    char buffer[1024];
-    json_encode(User,user,buffer);
-    printf("%s\n",buffer); // {"id":1,"name":"The User 1","age":19,"address":""}
-    char *json_strig = "{\"id\":123,\"name\":\"user1\",\"age\":12,\"address\":\"localhost\""
-                        ",\"other_random_keys\":\"random_value\"}";
-    // absence of key will raise error,
-    // but presence of additional keys are ignored
+*/
+int main(int argc, char const *argv[]){
+    char buf[1000];
+    float marks[] = {1,2,3,4,5,6,7,8};
+    User user = {
+                .j = 10,
+                .c = 20,
+                .name = "user is the one",
+                .gpa = 1.2,
+                .marks = marks,
+                .marks_count = sizeof(marks)/sizeof(int),
+            };
+    json_encode(User,user,buf);
+    printf("%s\n",buf );
+    char *json_string = "{\"j\":10,\"c\":20,\"name\":\"user is the one\",\
+                         \"gpa\":\"1.200000\",\"marks\":[1,2,3,4.122332,5,6,7,8]}";
     user = json_decode(User,json_string);
-    printf("%d",user.id);//123
-    // SJS allocates memeory for all string type
-    // and when you are done with them you can do
-    // any of the following
-    free_all_malloc(); // free all alloacter memory
-    // free_recent_malloc(); // frees single last allocated memory
-    // free_n_recent_malloc(size_t n); // free n-number of recently allocated memory
+    printf("%s\n", float_array_to_string(user.marks,user.marks_count)); 
+    float *a = json_get_var_float_array(json_string,"array");  
+    if(a==NULL) return  1;
+    printf("%f\n",a[3]); 
     return 0;
 }
-
 ```
 
 
