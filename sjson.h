@@ -95,34 +95,34 @@ NOTE:- if you want to add new datatypes you can
 
 static size_t __SJS_recent_array_size =0;
 //for int pointers
-#define declare_apointerInt(x) int *x;size_t x##_count
-#define fmt_apointerInt(x) "\""#x"\":%s"
-#define var_apointerInt(x) x
-#define var2_apointerInt(x) x,struct_instance.x##_count
-#define jget_apointerInt(x)   json_get_var_int_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_apointerInt(x)  int_array_to_string
+#define declare_DArrayInt(x) int *x;size_t x##_count
+#define fmt_DArrayInt(x) "\""#x"\":%s"
+#define var_DArrayInt(x) x
+#define var2_DArrayInt(x) x,struct_instance.x##_count
+#define jget_DArrayInt(x)   json_get_var_int_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayInt(x)  int_array_to_string
 
-#define declare_apointerFloat(x) float *x;size_t x##_count
-#define fmt_apointerFloat(x) "\""#x"\":%s"
-#define var_apointerFloat(x) x
-#define var2_apointerFloat(x) x,struct_instance.x##_count
-#define jget_apointerFloat(x)   json_get_var_float_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_apointerFloat(x)  float_array_to_string
+#define declare_DArrayFloat(x) float *x;size_t x##_count
+#define fmt_DArrayFloat(x) "\""#x"\":%s"
+#define var_DArrayFloat(x) x
+#define var2_DArrayFloat(x) x,struct_instance.x##_count
+#define jget_DArrayFloat(x)   json_get_var_float_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayFloat(x)  float_array_to_string
 
-#define declare_apointerDouble(x) double *x;size_t x##_count
-#define fmt_apointerDouble(x) "\""#x"\":%s"
-#define var_apointerDouble(x) x
-#define var2_apointerDouble(x) x,struct_instance.x##_count
-#define jget_apointerDouble(x)   json_get_var_double_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_apointerDouble(x)  double_array_to_string
+#define declare_DArrayDouble(x) double *x;size_t x##_count
+#define fmt_DArrayDouble(x) "\""#x"\":%s"
+#define var_DArrayDouble(x) x
+#define var2_DArrayDouble(x) x,struct_instance.x##_count
+#define jget_DArrayDouble(x)   json_get_var_double_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayDouble(x)  double_array_to_string
 
 
-#define declare_apointerLong(x) long *x;size_t x##_count
-#define fmt_apointerLong(x) "\""#x"\":%s"
-#define var_apointerLong(x) x
-#define var2_apointerLong(x) x,struct_instance.x##_count
-#define jget_apointerLong(x)   json_get_var_long_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_apointerLong(x)  long_array_to_string
+#define declare_DArrayLong(x) long *x;size_t x##_count
+#define fmt_DArrayLong(x) "\""#x"\":%s"
+#define var_DArrayLong(x) x
+#define var2_DArrayLong(x) x,struct_instance.x##_count
+#define jget_DArrayLong(x)   json_get_var_long_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayLong(x)  long_array_to_string
 
 
 

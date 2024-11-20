@@ -224,7 +224,8 @@ x consume_##x(const char* string,size_t *consumed){\
     while(IS_SPACE(string[ptr])){\
         ptr++;\
     }\
-    while(string[ptr] && IS_##x(string[ptr])){\
+    int decimal=0;\
+    while(string[ptr] && IS_##x(string[ptr]) || (!decimal && string[ptr]=='.')){\
         buffer[buff_ptr] = string[ptr];\
         ptr++;\
         buff_ptr++;\
@@ -246,6 +247,7 @@ decimal_number_consume(double,atof);
 
 #define array_parser(x) \
 x* parse_##x##_array(const char* string_ptr,size_t length){\
+    if(string_ptr==NULL) return NULL;\
     x* array  = calloc(sizeof(x),length/2);\
     size_t a_ptr=0;\
     size_t ptr=0;\
@@ -268,87 +270,43 @@ x* parse_##x##_array(const char* string_ptr,size_t length){\
 #define list array_parser(int) array_parser(float) array_parser(double) array_parser(long)
 list
 
-int * json_get_var_int_array(const char * json_string, const char* key_string){
-    const char *start_from;
-    size_t length = 0;
-    start_from = json_get_var(json_string, key_string, &length);
-    return parse_int_array(start_from, length);
+#define JsonToTypeArray(x) \
+x * json_get_var_##x##_array(const char * json_string, const char* key_string){\
+    const char *start_from;\
+    size_t length = 0;\
+    start_from = json_get_var(json_string, key_string, &length);\
+    return parse_##x##_array(start_from, length);\
 }
 
-double * json_get_var_double_array(const char * json_string, const char* key_string){
-    const char *start_from;
-    size_t length = 0;
-    start_from = json_get_var(json_string, key_string, &length);
-    return parse_double_array(start_from, length);
-}
+JsonToTypeArray(int);
+JsonToTypeArray(long);
+JsonToTypeArray(float);
+JsonToTypeArray(double);
 
-float * json_get_var_float_array(const char * json_string, const char* key_string){
-    const char *start_from;
-    size_t length = 0;
-    start_from = json_get_var(json_string, key_string, &length);
-    return parse_float_array(start_from, length);
-}
+#define TypeArrayToString(type,max_string,fmt) \
+char * type##_array_to_string(type *items,size_t count){\
+    char * string = calloc(sizeof(char),count*(max_string + 2));\
+    char *temp = string;\
+    __SJS_A[__SJS_C++] = string;\
+    string[0] = '[';\
+    temp+=1;\
+    for(size_t i=0;i<count;i++){\
+        size_t write_count=0;\
+        write_count = sprintf(temp,fmt,items[i]);\
+        temp+=write_count;\
+        *temp++=',';\
+        *temp++=' ';\
+    }\
+    *(temp-2)=']';\
+    *(temp-1) = 0;\
+    return string;\
+}\
 
-long * json_get_var_long_array(const char * json_string, const char* key_string){
-    const char *start_from;
-    size_t length = 0;
-    start_from = json_get_var(json_string, key_string, &length);
-    return parse_long_array(start_from, length);
-}
+TypeArrayToString(int,11, "%d");
+TypeArrayToString(long,32, "%ld");
+TypeArrayToString(float,16, "%f");
+TypeArrayToString(double,32, "%lf");
 
-
-
-
-
-char * array_to_string(void *items,size_t count,const char * fmt,uint max_char_per_item){
-    char * string = calloc(
-                           sizeof(char),
-                           /* extra 2 for `,` and ` ` */
-                           count*(max_char_per_item + 2
-                        ));
-    char *temp = string;
-    
-        __SJS_A[__SJS_C++] = string;
-    
-    string[0] = '[';
-    temp+=1;
-    for(size_t i=0;i<count;i++){
-        size_t write_count=0;
-        if(strcmp(fmt,"%d")){
-            write_count = sprintf(temp,fmt,((int *)items)[i]);
-        }else if(strcmp(fmt,"%f")){
-            write_count = sprintf(temp,fmt,((float *)items)[i]);
-        }else if(strcmp(fmt,"%lf")){
-            write_count = sprintf(temp,fmt,((double *)items)[i]);
-        }else if(strcmp(fmt,"%ld")){
-            write_count = sprintf(temp,fmt,((long *)items)[i]);
-        }
-        temp+=write_count;
-        *temp++=',';
-        *temp++=' ';
-    }
-    *(temp-2)=']';
-    *(temp-1) = 0;
-    return string;
-
-}
-
-char * int_array_to_string(int *items,size_t count){
-    // uint int_max_digits = 11;//if all 4bytes are 1,
-    return array_to_string(items,count,"%d",11);
-}
-
-char * float_array_to_string(float *items,size_t count){
-    return array_to_string(items,count,"%f",16);
-}
-
-char * double_array_to_string(double *items,size_t count){
-    return array_to_string(items,count,"%lf",32);
-}
-
-char * long_array_to_string(int *items,size_t count){
-    return array_to_string(items,count,"%ld",22);
-}
 
 
 
