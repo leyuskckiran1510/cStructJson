@@ -57,11 +57,15 @@ const char * json_get_var(const char *json_string,const char *key,size_t *length
     const char *key_start=json_string+1;
     // search for key like string, until we reach end of json_string
     // or we find key like string wraped arround with double quote ("")
-    while(!(*(key_start-1)=='"' && *(key_start+strlen(key))=='"')){
-        key_start = strstr(json_string, key);
+    while(key_start){
+        key_start = strstr(key_start, key);
         if (key_start == NULL) {
             return NULL;
         }
+        if((*(key_start-1)=='"' && *(key_start+strlen(key))=='"')){
+            break;
+        }
+        key_start+=strlen(key);
     }
 
     //  search for `:`
@@ -110,14 +114,7 @@ const char * json_get_var(const char *json_string,const char *key,size_t *length
     }
 
     
-    *length = value_end - value_start; 
-    // if(value_length>1024 && is_dynamic){
-    //     void * temp = realloc(value_buffer,sizeof(char)*value_length+1);
-    //     assert(temp != NULL && "Cannot Allocate Memeory BUY MORE!!");
-    //     value_buffer = temp;
-    // }
-    // strncpy(value_buffer, value_start, value_length);
-    // value_buffer[value_length] = '\0';
+    *length = value_end - value_start;
     return value_start;
 }
 
@@ -267,8 +264,10 @@ x* parse_##x##_array(const char* string_ptr,size_t length){\
     return array;\
 }\
 
-#define list array_parser(int) array_parser(float) array_parser(double) array_parser(long)
+#define list U(int) U(float) U(double) U(long)
+#define U(x) array_parser(x)
 list
+#undef U
 
 #define JsonToTypeArray(x) \
 x * json_get_var_##x##_array(const char * json_string, const char* key_string){\
@@ -277,11 +276,9 @@ x * json_get_var_##x##_array(const char * json_string, const char* key_string){\
     start_from = json_get_var(json_string, key_string, &length);\
     return parse_##x##_array(start_from, length);\
 }
-
-JsonToTypeArray(int);
-JsonToTypeArray(long);
-JsonToTypeArray(float);
-JsonToTypeArray(double);
+#define U(x) JsonToTypeArray(x)
+list
+#undef U
 
 #define TypeArrayToString(type,max_string,fmt) \
 char * type##_array_to_string(type *items,size_t count){\
@@ -301,6 +298,7 @@ char * type##_array_to_string(type *items,size_t count){\
     *(temp-1) = 0;\
     return string;\
 }\
+
 
 TypeArrayToString(int,11, "%d");
 TypeArrayToString(long,32, "%ld");
@@ -322,7 +320,7 @@ void free_recent_malloc(){
 }
 void free_all_malloc(){
     for(size_t i=0;i<__SJS_C;i++){
-        if(__SJS_A[i]){
+        if(__SJS_A[i]!=NULL){
             free(__SJS_A[i]);
             __SJS_A[i]=NULL;
         }
@@ -332,13 +330,12 @@ void free_n_recent_malloc(size_t n){
     // chose the smaller one
     size_t until = __SJS_C<n?__SJS_C:n;
     for(size_t i=__SJS_C-1;i>=__SJS_C-until;i--){
-        if(__SJS_A[i]){
+        if(__SJS_A[i]!=NULL){
             free(__SJS_A[i]);
             __SJS_A[i]=NULL;
         }
     }
 }
-
 
 
 

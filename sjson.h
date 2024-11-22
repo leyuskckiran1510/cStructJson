@@ -125,8 +125,18 @@ static size_t __SJS_recent_array_size =0;
 #define parse_DArrayLong(x)  long_array_to_string
 
 
+// Struct Expansion and jsonfiy
+// #define Struct(name,...)                                                       \
+//                                                                                \
+// typedef struct {                                                               \
+//     FOR_EACH(ExpandToStructMember,##__VA_ARGS__)                               \
+// } name;                                                                        
 
-
+#define ExpandToStructMember(x)      declare_##x;
+#define declare_Struct(name,...) typedef struct {                               \
+    FOR_EACH(ExpandToStructMember,##__VA_ARGS__)                               \
+                                                                               \
+};                                                                             \
 
 #define ExpandToStructMember(x)      declare_##x;
 #define ExpandToFormatString(x)      fmt_##x","
@@ -160,6 +170,8 @@ name json_decode_##name(char *buffer){                                         \
     return struct_instance;                                                    \
 }                                                                              
 
+
+
 #define json_encode(name,item,buf)  json_encode_##name((item),buf);
 #define json_decode(name,buf)  json_decode_##name(buf);
 
@@ -169,6 +181,16 @@ static size_t __SJS_C = 0;
 void free_recent_malloc();
 void free_all_malloc();
 void free_n_recent_malloc(size_t n);
+
+int external_main(int,const char**);
+
+#define main(...)  main(__VA_ARGS__){\
+    external_main(argc,argv);\
+    return 0;\
+}\
+int external_main(__VA_ARGS__)\
+
+
 
 #ifdef __SJS_IMPLE__
 #include "sjson.c"
