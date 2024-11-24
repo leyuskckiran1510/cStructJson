@@ -240,8 +240,6 @@ x consume_##x(const char* string,size_t *consumed){\
 decimal_number_consume(float,atof);
 decimal_number_consume(double,atof);
 
-
-
 #define array_parser(x) \
 x* parse_##x##_array(const char* string_ptr,size_t length){\
     if(string_ptr==NULL) return NULL;\
@@ -269,6 +267,8 @@ x* parse_##x##_array(const char* string_ptr,size_t length){\
 list
 #undef U
 
+
+
 #define JsonToTypeArray(x) \
 x * json_get_var_##x##_array(const char * json_string, const char* key_string){\
     const char *start_from;\
@@ -279,6 +279,7 @@ x * json_get_var_##x##_array(const char * json_string, const char* key_string){\
 #define U(x) JsonToTypeArray(x)
 list
 #undef U
+
 
 #define TypeArrayToString(type,max_string,fmt) \
 char * type##_array_to_string(type *items,size_t count){\
@@ -340,6 +341,10 @@ void free_n_recent_malloc(size_t n){
 
 
 
-
+void db_created_callback(void *passthrough,Row row){
+    (void) row;
+    char *table_name = (char*) passthrough;
+    printf("Sucessfully created %s ...",table_name);
+}
 
 

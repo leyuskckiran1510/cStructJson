@@ -12,7 +12,6 @@ JsonStruct(User,
            float(gpa),
            DArrayFloat(marks),
            string(class),
-           DArrayString(subject),
 );
 
 
@@ -50,18 +49,9 @@ int main(int argc, char const *argv[]){
     // printf("%s\n",buf );
     // json_encode(Error,er,buf);
     // printf("%s\n",buf );
-    FILE *fp = fopen("sample.json","r");
     char json_string1[500]={0};
-    size_t file_size = 0;
-    fseek(fp,0,SEEK_SET);
-    file_size = ftell(fp);
-    fseek(fp,0,SEEK_END);
-    file_size = ftell(fp)-file_size;
-    read(0,json_string1,file_size);
-    printf("file has %zu chars  |%s| \n",file_size,json_string1);
     user = json_decode(User,json_string1);
-    printf("%s %d\n", float_array_to_string(user.marks,user.marks_count),user.j); 
-    fclose(fp);
+    printf("%s %d\n", float_array_to_string(user.marks,user.marks_count),user.j);
     // char *json_string = "{\"status_code\":400,\"status_message\":\"Message Falied\"}";
     // er = json_decode_Error(json_string);
     // json_encode_Error(er,buf);

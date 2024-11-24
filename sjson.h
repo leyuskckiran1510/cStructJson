@@ -44,85 +44,97 @@ NOTE:- if you want to add new datatypes you can
 */
 
 // int parsing and handeling functions
-#define declare_int(x) int x
-#define fmt_int(x) "\""#x"\":%d"
-#define var_int(x) x
-#define var2_int(x) x
-#define jget_int(x) json_get_var_int(buffer,#x)
+#define declare_int(x)    int x
+#define fmt_int(x)        "\""#x"\":%d"
+#define var_int(x)        x
+#define var2_int(x)       x
+#define jget_int(x)       json_get_var_int(buffer,#x)
 #define parse_int(x) 
+#define sql_int(x)        #x "INTEGER," 
 
 // for char
-#define declare_char(x) char x
-#define fmt_char(x) "\""#x"\":\"%c\""
-#define var_char(x) x
-#define var2_char(x) x
-#define jget_char(x) json_get_var_char(buffer,#x)
+#define declare_char(x)   char x
+#define fmt_char(x)       "\""#x"\":\"%c\""
+#define var_char(x)       x
+#define var2_char(x)      x
+#define jget_char(x)      json_get_var_char(buffer,#x)
 #define parse_char(x) 
+#define sql_char(x)       #x "CHARACTER(1)," 
 
 // for float
-#define declare_float(x) float x
-#define fmt_float(x) "\""#x"\":%f"
-#define var_float(x) x
-#define var2_float(x) x
-#define jget_float(x) json_get_var_double(buffer,#x)
+#define declare_float(x)  float x
+#define fmt_float(x)      "\""#x"\":%f"
+#define var_float(x)      x
+#define var2_float(x)     x
+#define jget_float(x)     json_get_var_double(buffer,#x)
 #define parse_float(x) 
+#define sql_float(x)      #x "REAL," 
 
 // for string
-#define declare_string(x) char* x
-#define fmt_string(x) "\""#x"\":\"%s\""
-#define var_string(x) x
-#define var2_string(x) x
-#define jget_string(x) json_get_var_string(buffer,#x)
+#define declare_string(x)  char* x
+#define fmt_string(x)      "\""#x"\":\"%s\""
+#define var_string(x)      x
+#define var2_string(x)     x
+#define jget_string(x)     json_get_var_string(buffer,#x)
 #define parse_string(x) 
+#define sql_string(x)      #x "TEXT," 
 
 // for long
-#define declare_long(x) long x
-#define fmt_long(x) "\""#x"\":%ld"
-#define var_long(x) x
-#define var2_long(x) x
-#define jget_long(x) json_get_var_long(buffer,#x)
-#define parse_long(x) 
+#define declare_long(x)    long x
+#define fmt_long(x)        "\""#x"\":%ld"
+#define var_long(x)        x
+#define var2_long(x)       x
+#define jget_long(x)       json_get_var_long(buffer,#x)
+#define parse_long(x)  
+#define sql_long(x)        #x "BIGINT," 
 
 // for double
-#define declare_double(x) double x
-#define fmt_double(x) "\""#x"\":%ld"
-#define var_double(x) x
-#define var2_double(x) x
-#define jget_double(x) json_get_var_double(buffer,#x)
+#define declare_double(x)  double x
+#define fmt_double(x)      "\""#x"\":%ld"
+#define var_double(x)      x
+#define var2_double(x)     x
+#define jget_double(x)     json_get_var_double(buffer,#x)
 #define parse_double(x) 
+#define sql_double(x)      #x "DOUBLE PRECISION," 
 
 //for array pointers;
 
 static size_t __SJS_recent_array_size =0;
 //for int pointers
-#define declare_DArrayInt(x) int *x;size_t x##_count
-#define fmt_DArrayInt(x) "\""#x"\":%s"
-#define var_DArrayInt(x) x
-#define var2_DArrayInt(x) x,struct_instance.x##_count
-#define jget_DArrayInt(x)   json_get_var_int_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_DArrayInt(x)  int_array_to_string
+#define declare_DArrayInt(x)    int *x;size_t x##_count
+#define fmt_DArrayInt(x)        "\""#x"\":%s"
+#define var_DArrayInt(x)        x
+#define var2_DArrayInt(x)       x,struct_instance.x##_count
+#define jget_DArrayInt(x)       json_get_var_int_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayInt(x)      int_array_to_string
+#define sql_DArrayInt(x)        #x "BLOB,"  #x"_count" "INTEGER," #x"_type" "varchar(10)"
 
-#define declare_DArrayFloat(x) float *x;size_t x##_count
-#define fmt_DArrayFloat(x) "\""#x"\":%s"
-#define var_DArrayFloat(x) x
-#define var2_DArrayFloat(x) x,struct_instance.x##_count
-#define jget_DArrayFloat(x)   json_get_var_float_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_DArrayFloat(x)  float_array_to_string
+#define declare_DArrayFloat(x)  float *x;size_t x##_count
+#define fmt_DArrayFloat(x)      "\""#x"\":%s"
+#define var_DArrayFloat(x)      x
+#define var2_DArrayFloat(x)     x,struct_instance.x##_count
+#define jget_DArrayFloat(x)     json_get_var_float_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayFloat(x)    float_array_to_string
+#define sql_DArrayFloat(x)      #x "BLOB,"  #x"_count" "INTEGER," #x"_type" "varchar(10)"
 
 #define declare_DArrayDouble(x) double *x;size_t x##_count
-#define fmt_DArrayDouble(x) "\""#x"\":%s"
-#define var_DArrayDouble(x) x
-#define var2_DArrayDouble(x) x,struct_instance.x##_count
-#define jget_DArrayDouble(x)   json_get_var_double_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_DArrayDouble(x)  double_array_to_string
+#define fmt_DArrayDouble(x)     "\""#x"\":%s"
+#define var_DArrayDouble(x)     x
+#define var2_DArrayDouble(x)    x,struct_instance.x##_count
+#define jget_DArrayDouble(x)    json_get_var_double_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayDouble(x)   double_array_to_string
+#define sql_DArrayDouble(x)     #x "BLOB,"  #x"_count" "INTEGER," #x"_type" "varchar(10)"
 
 
-#define declare_DArrayLong(x) long *x;size_t x##_count
-#define fmt_DArrayLong(x) "\""#x"\":%s"
-#define var_DArrayLong(x) x
-#define var2_DArrayLong(x) x,struct_instance.x##_count
-#define jget_DArrayLong(x)   json_get_var_long_array(buffer,#x),.x##_count= __SJS_recent_array_size  
-#define parse_DArrayLong(x)  long_array_to_string
+#define declare_DArrayLong(x)   long *x;size_t x##_count
+#define fmt_DArrayLong(x)       "\""#x"\":%s"
+#define var_DArrayLong(x)       x
+#define var2_DArrayLong(x)      x,struct_instance.x##_count
+#define jget_DArrayLong(x)      json_get_var_long_array(buffer,#x),.x##_count= __SJS_recent_array_size  
+#define parse_DArrayLong(x)     long_array_to_string
+#define sql_DArrayLong(x)       #x "BLOB,"  #x"_count" "INTEGER," #x"_type" "varchar(10)"
+
+
 
 
 // Struct Expansion and jsonfiy
@@ -142,6 +154,7 @@ static size_t __SJS_recent_array_size =0;
 #define ExpandToFormatString(x)      fmt_##x","
 #define ExpandToMemberAccess(x)      ,parse_##x(struct_instance.var2_##x)
 #define ExpandToJsonValueGet(x)      .var_##x = jget_##x,
+#define ExpandToSQL(x)               sql_##x
  
 //__VAR_OPT__(x); will expand to x, if __VA_ARGS__ is not empty
 // so in json_encode, we set buffer = "{}", as fallback when 
@@ -168,9 +181,24 @@ name json_decode_##name(char *buffer){                                         \
                     FOR_EACH(ExpandToJsonValueGet,##__VA_ARGS__)               \
     };                                                                         \
     return struct_instance;                                                    \
-}                                                                              
+}                                                                              \
+                                                                               \
+void table_create_##name(Database db){                                         \
+    char *query = "CREATE TABLE IF NOT EXISTS" #name  "(id PRIMARY KEY"        \
+       "AUTOINCREMENT,"                                                        \
+                     FOR_EACH(ExpandToSQL,__VA_ARGS__)                         \
+                    ")";                                                       \
+    database_execute(db,query,db_created_callback,#name);                      \
+}                                                                              \
+name rowcallback_##name(void *passthrough,Row row){                            \
+       name instance;                \
+}
 
 
+typedef struct {} Row;
+
+
+void db_created_callback(void *passthrough,Row row);
 
 #define json_encode(name,item,buf)  json_encode_##name((item),buf);
 #define json_decode(name,buf)  json_decode_##name(buf);
